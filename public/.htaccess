@@ -1,15 +1,7 @@
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # 1. Handle browser preflight checks directly inside Apache
-    RewriteCond %{REQUEST_METHOD} OPTIONS
-    RewriteRule ^(.*)$ - [R=204,L]
-
-    # 2. Redirect everything else to Slim's index.php
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [QSA,L]
-</IfModule>
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]
 
 # 3. Force headers onto the preflight options response
 Header always set Access-Control-Allow-Origin "https://isnzbooks.netlify.app"
