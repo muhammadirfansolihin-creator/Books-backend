@@ -2,9 +2,3 @@ RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^ index.php [QSA,L]
-
-# 3. Force headers onto the preflight options response
-Header always set Access-Control-Allow-Origin "https://isnzbooks.netlify.app"
-Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
-Header always set Access-Control-Allow-Credentials "true"
