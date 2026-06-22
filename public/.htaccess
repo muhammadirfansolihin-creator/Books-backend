@@ -12,7 +12,7 @@
 </IfModule>
 
 # 3. Force headers onto the preflight options response
-Header always set Access-Control-Allow-Origin "http://localhost:5173"
+Header always set Access-Control-Allow-Origin "https://isnzbooks.netlify.app/"
 Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
 Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
 Header always set Access-Control-Allow-Credentials "true"
