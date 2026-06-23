@@ -18,19 +18,14 @@ final class Cors implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         // For preflight OPTIONS requests, intercept and return a blank 204 response
-        if ($request->getMethod() === 'OPTIONS') {
-            $response = new \Slim\Psr7\Response(204);
+            $response = $handler->handle($request);
             return $this->withCors($request, $response); // Pass both $request and $response
-        }
-        
-        // Pass both $request and the generated $response from downstream handlers
-        return $this->withCors($request, $handler->handle($request));
     }
 
     private function withCors(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface {
         $origin = $req->getHeaderLine('Origin');
-        $allow = !empty($origin) ? $origin : '*'; 
-        $creds = true;
+        $allow = '*'; 
+        $creds = false;
         
         if ($this->allowed && in_array($origin, $this->allowed, true)) {
             $allow = $origin; 

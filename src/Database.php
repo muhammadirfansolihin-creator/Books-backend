@@ -23,7 +23,10 @@ final class Database
         $user    = !empty($_ENV['DB_USER'])    ? $_ENV['DB_USER']    : 'root';
         $pass    = isset($_ENV['DB_PASS'])     ? $_ENV['DB_PASS']     : '';
 
-        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=%s', $host, $port, $name, $charset);
+        $dsn = sprintf(
+            'mysql:host=%s;port=%s;dbname=%s;charset=%s', 
+            $host, $port, $name, $charset
+        );
 
         try {
             self::$pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [

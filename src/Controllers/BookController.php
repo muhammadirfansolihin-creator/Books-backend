@@ -4,16 +4,15 @@ namespace App\Controllers;
 use App\Repositories\BookRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use PDO;
 
 final class BookController
 {
-    public function __construct(private BookRepository $books) {}
+    public function __construct(private BookRepository $books, private PDO $pdo) {}
 
     public function index(Request $r, Response $s): Response
     {
-        $p = $r->getQueryParams();
-        $rows = $this->books->all((string)($p['q'] ?? ''), (int)($p['limit'] ?? 0));
-        return $this->json($s, ['count' => count($rows), 'data' => $rows]);
+        return $this->json($s, $this->books->all());
     }
 
     public function show(Request $r, Response $s, array $a): Response
@@ -25,7 +24,10 @@ final class BookController
 
     public function create(Request $r, Response $s): Response
     {
-        $body = (array)($r->getParsedBody() ?? []);
+        $body = (array)($r->getParsedBody());
+        $auth = (array)$r->getAttribute('auth', []);
+        $userId = (int)($auth['sub'] ?? 0);
+
         $errors = (new Validator())
             ->required('title','author','year')
             ->field('title', Validator::nonEmptyString(200), 'title must be 1-200 chars')
@@ -38,37 +40,33 @@ final class BookController
             return $this->json($s, ['errors' => $errors], 400);
         }
 
-        $auth = (array)$r->getAttribute('auth', []);
-        $createdBy = (int)($auth['sub'] ?? 0);
-        $id = $this->books->create($body, $createdBy);
-        $s = $s->withHeader('Location', '/api/books/' . $id);
-    
-        return $this->json($s, ['message' => 'Book created', 'data' => $this->books->find($id)], 201);
-    }
+        $id = $this->books->create($body, $userId);
+        $this->logEvent($userId, 'book.create', (string)$id, $r->getServerParams()['REMOTE_ADDR'] ?? '', "Created book: " . $body['title']);
+
+        return $this->json($s, ['message' => 'Book created', 'id' => $id], 201);    
+        }
 
     public function update(Request $r, Response $s, array $a): Response{
-    $id = (int)($a['id'] ?? 0);
-    $book = $this->books->find($id);
-    if (!$book) {
-        return $this->json($s, ['error' => 'not found'], 404);
-    }
+        $id = (int)($a['id']);
+        $book = $this->books->find($id);
+        if (!$book) {
+            return $this->json($s, ['error' => 'not found'], 404);
+        }
 
-    $auth = (array)$r->getAttribute('auth', []);
-    $isOwner = (int)($book['created_by'] ?? 0) === (int)($auth['sub'] ?? 0);
-    $isAdmin = ($auth['role'] ?? 'member') === 'admin';
+        $auth = (array)$r->getAttribute('auth', []);
+        $userId = (int)($auth['sub'] ?? 0);
+        $isOwner = (int)($book['created_by'] ?? 0) === (int)($auth['sub'] ?? 0);
+        $isAdmin = ($auth['role'] ?? 'member') === 'admin';
 
-    if (!$isOwner && !$isAdmin) {
-        return $this->json($s, ['error' => 'Forbidden'], 403);
-    }
+        if (!$isOwner && !$isAdmin) {
+            return $this->json($s, ['error' => 'Forbidden'], 403);
+        }
 
-    $body = (array)($r->getParsedBody() ?? []);
-    $errors = $this->validate($body, false);
-    if ($errors) {
-        return $this->json($s, ['errors' => $errors], 400);
-    }
+        $body = (array)($r->getParsedBody());
+        $this->books->update($id, array_merge($book, $body));
+            $this->logEvent($userId, 'book.update', (string)$id, $r->getServerParams()['REMOTE_ADDR'] ?? '', "Updated book ID: " . $id);
 
-    $this->books->update($id, $body);
-    return $this->json($s, ['message' => 'Book updated', 'data' => $this->books->find($id)]);
+            return $this->json($s, ['message' => 'Book updated']);
     }
 
     public function delete(Request $r, Response $s, array $a): Response
@@ -79,16 +77,22 @@ final class BookController
             return $this->json($s, ['error' => 'Admins only'], 403);
         }
         
-        $id = (int)($a['id'] ?? 0);
+        $id = (int)($a['id']);
         $book = $this->books->find($id);
         if (!$book) {
             return $this->json($s, ['error' => 'not found'], 404);
         }
 
         $this->books->delete($id);
+        $this->logEvent($userId, 'book.delete', (string)$id, $r->getServerParams()['REMOTE_ADDR'] ?? '', "Deleted book ID: " . $id);
         return $this->json($s, ['message' => 'Book deleted', 'data' => $book]);
     }
 
+    private function logEvent(?int $actorId, string $action, ?string $target, string $ip, string $detail): void {
+        $stmt = $this->pdo->prepare('INSERT INTO audit_log (actor_id, action, target, ip_address, detail) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([$actorId ?: null, $action, $target, $ip, $detail]);
+    }
+    
     private function validate(array $b, bool $requireAll): array
     {
         $errors = [];

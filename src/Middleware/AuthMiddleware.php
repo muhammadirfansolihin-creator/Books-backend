@@ -11,8 +11,11 @@ final class AuthMiddleware implements MiddlewareInterface {
     public function __construct(private JwtService $jwt) {}
 
     public function process(ServerRequestInterface $req, RequestHandlerInterface $h): ResponseInterface {
+       if ($req->getMethod() === 'OPTIONS') {
+            return $h->handle($req);
+        }
+
         $hdr = $req->getHeaderLine('Authorization');
-        
         if (!preg_match('/^Bearer\s+(.+)$/i', $hdr, $m)) {
             return $this->fail('Missing or malformed token');
         }
@@ -20,7 +23,6 @@ final class AuthMiddleware implements MiddlewareInterface {
         try {
             $payload = $this->jwt->verify($m[1]);
         } catch (\Throwable $e) {
-            error_log('[Auth] ' . $e->getMessage());
             return $this->fail('Invalid or expired token');
         }
 
