@@ -38,8 +38,7 @@ Content-Type: application/json
 ### Try to store an XSS payload (allowed string, but rendered safely on output)
 POST {{host}}/api/books
 Content-Type: application/json
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJib29rcy1hcGkiLCJzdWIiOjEsImlhdCI6MTc4MjE1MjcwMSwiZXhwIjoxNzgyMTU2MzAxLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGJvb2tzLnRlc3QifQ.UtusrtRRDpg6SZUCxLXur1D8dZppBSYcKrI51xrzYK0
-
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJib29rcy1hcGkiLCJzdWIiOjEsImlhdCI6MTc4MjE5NzQyMCwiZXhwIjoxNzgyMjAxMDIwLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGJvb2tzLnRlc3QifQ.E54Mt8rG4eUImfE9GxDYXkiUsl2yRWSiJiA6ic690Mc
 {
   "title":  "<script>alert('xss')</script>",
   "author": "Attacker",
@@ -56,8 +55,7 @@ GET {{host}}/api/books
 ### As member, try to update a book NOT created by you (expect 403)
 PUT {{host}}/api/books/1
 Content-Type: application/json
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJib29rcy1hcGkiLCJzdWIiOjEsImlhdCI6MTc4MjE1MjcwMSwiZXhwIjoxNzgyMTU2MzAxLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGJvb2tzLnRlc3QifQ.UtusrtRRDpg6SZUCxLXur1D8dZppBSYcKrI51xrzYK0
-
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJib29rcy1hcGkiLCJzdWIiOjEsImlhdCI6MTc4MjE5NzQyMCwiZXhwIjoxNzgyMjAxMDIwLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGJvb2tzLnRlc3QifQ.E54Mt8rG4eUImfE9GxDYXkiUsl2yRWSiJiA6ic690Mc
 
 { "title": "Hijacked" }
 
@@ -76,10 +74,10 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJib29rcy1hc
 ### Year out of range
 POST {{host}}/api/books
 Content-Type: application/json
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJib29rcy1hcGkiLCJzdWIiOjEsImlhdCI6MTc4MjE1MjcwMSwiZXhwIjoxNzgyMTU2MzAxLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGJvb2tzLnRlc3QifQ.UtusrtRRDpg6SZUCxLXur1D8dZppBSYcKrI51xrzYK0
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJib29rcy1hcGkiLCJzdWIiOjEsImlhdCI6MTc4MjE5NzQyMCwiZXhwIjoxNzgyMjAxMDIwLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGJvb2tzLnRlc3QifQ.E54Mt8rG4eUImfE9GxDYXkiUsl2yRWSiJiA6ic690Mc
 
 
-{ "title": "Future Book", "author": "Time Traveller", "year": 9999 }
+{ "title": "Future Book", "author": "Time Traveller", "year": 2011 }
 
 ### Title too long (> 200 chars)
 POST {{host}}/api/books

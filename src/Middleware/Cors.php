@@ -28,7 +28,7 @@ final class Cors implements MiddlewareInterface
     private function withCors(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface {
         $origin = $req->getHeaderLine('Origin');
         $allow = !empty($origin) ? $origin : '*'; 
-        $creds = true;
+        $creds = false;
         
         if ($this->allowed && in_array($origin, $this->allowed, true)) {
             $allow = $origin; 

@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Repositories\BookRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Validation\Validator;
 
 final class BookController
 {
