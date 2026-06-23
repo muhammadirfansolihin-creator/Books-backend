@@ -90,7 +90,6 @@ final class BookController
         }
 
         $this->books->delete($id);
-        $this->logEvent($userId, 'book.delete', (string)$id, $r->getServerParams()['REMOTE_ADDR'] ?? '', "Deleted book ID: " . $id);
         return $this->json($s, ['message' => 'Book deleted', 'data' => $book]);
     }
 
