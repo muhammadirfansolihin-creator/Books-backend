@@ -19,7 +19,6 @@ return function (App $app): void {
 
     $bookCtrl = new BookController(new BookRepository($pdo), $pdo);
     $authCtrl = new AuthController(new UserRepository($pdo), $jwt, $pdo);
-    $app->options('/{routes:.+}', function($r, $s) { return $s; });
 
     $loginMw = new RateLimit(
         (int)($_ENV['LOGIN_RATE_LIMIT'] ?? 5),
@@ -37,7 +36,7 @@ return function (App $app): void {
     $app->get('/auth/me', [$authCtrl, 'me'])->add($auth);
     $app->group('/api/books', function ($g) use ($bookCtrl) {
         $g->post('', [$bookCtrl, 'create']);
-        $g->put('/{id}', [$bookCtrl, 'update']);
+        $g->put('/{id}', [$g, 'update']);
         $g->delete('/{id}', [$bookCtrl, 'delete']);
     })->add($auth);
     
