@@ -17,7 +17,7 @@ return function (App $app): void {
     $jwt = new JwtService();
     $auth = new AuthMiddleware($jwt);
 
-    $bookCtrl = new BookController(new BookRepository($pdo));
+    $bookCtrl = new BookController(new BookRepository($pdo), $pdo);
     $authCtrl = new AuthController(new UserRepository($pdo), $jwt);
     $app->options('/{routes:.+}', function($r, $s) { return $s; });
 
