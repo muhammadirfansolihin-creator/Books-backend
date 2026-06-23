@@ -19,7 +19,7 @@ return function (App $app): void {
 
     $bookCtrl = new BookController(new BookRepository($pdo));
     $authCtrl = new AuthController(new UserRepository($pdo), $jwt);
-    $app->options('/{routes:.+}', function(Request $r, Response $s) => $s);
+    $app->options('/{routes:.+}', function($r, $s) { return $s; });
 
     $loginMw = new RateLimit(
         (int)($_ENV['LOGIN_RATE_LIMIT'] ?? 5),
