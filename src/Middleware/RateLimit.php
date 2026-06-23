@@ -9,15 +9,11 @@ use Slim\Psr7\Response as SlimResponse;
 
 final class RateLimit implements MiddlewareInterface {
 
-    private int $limit;
-    private int $window;
-    private string $bucket;
-
-    public function __construct(int $limit, int $window, string $bucket = 'default') {
-        $this->limit = $limit;
-        $this->window = $window;
-        $this->bucket = $bucket;
-    }
+    public function __construct(
+        private int $limit,
+        private int $window,
+        private string $bucket = 'default'
+    ){}
 
     public function process(ServerRequestInterface $req, RequestHandlerInterface $h): ResponseInterface {
         $ip = (string) ($req->getServerParams()['REMOTE_ADDR'] ?? 'unknown');

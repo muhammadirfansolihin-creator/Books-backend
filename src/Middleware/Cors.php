@@ -40,7 +40,7 @@ final class Cors implements MiddlewareInterface
             ->withHeader('Access-Control-Allow-Origin', $allow)
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
             ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-            ->withHeader('Vary', 'Origin')
+            ->withHeader('Vary', 'Origin');
             
         if ($creds) {
             $res = $res->withHeader('Access-Control-Allow-Credentials', 'true');
