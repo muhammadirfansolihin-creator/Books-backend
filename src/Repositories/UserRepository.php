@@ -10,21 +10,22 @@ final class UserRepository {
             'SELECT id, name, email, password_hash, role FROM users WHERE email = :e'
         );
         $stmt->execute([':e' => mb_strtolower(trim($email))]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch();
         return $row === false ? null : $row;
     }
 
     public function findById(int $id): ?array {
-        $stmt = $this->pdo->prepare('SELECT id, name, email, role FROM users WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare('SELECT id, name, email, role, created_at FROM users WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch();
         return $row === false ? null : $row;
     }
 
     public function create(string $n, string $e, string $hash, string $role = 'member'): int {
         $this->pdo->prepare(
             'INSERT INTO users (name, email, password_hash, role) VALUES (:n, :e, :h, :r)'
-        )->execute([
+        );
+        $stmt->execute([
             ':n' => trim($n), 
             ':e' => mb_strtolower(trim($e)), 
             ':h' => $hash, 

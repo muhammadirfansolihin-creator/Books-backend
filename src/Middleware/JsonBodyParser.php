@@ -10,13 +10,12 @@ final class JsonBodyParser implements MiddlewareInterface
 {
     public function process(Request $request, Handler $handler): Response
     {   
-        $contentType = $request->getHeaderLine('Content-Type');
-        if(str_contains($contentType, 'application/json')){
-            $content = json_decode(file_get_contents('php://input'), true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $request = $request->withParsedBody($contents);
-            }
-        }
+        if (stripos($request->getHeaderLine('Content-Type'), 'application/json') === 0) { 
+            $raw     = (string)$request->getBody(); 
+            $decoded = $raw === '' ? [] : json_decode($raw, true); 
+            if (!is_array($decoded)) $decoded = []; 
+            $request = $request->withParsedBody($decoded); 
+        } 
         return $handler->handle($request);
     }
 }

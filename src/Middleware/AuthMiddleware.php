@@ -12,6 +12,7 @@ final class AuthMiddleware implements MiddlewareInterface {
 
     public function process(ServerRequestInterface $req, RequestHandlerInterface $h): ResponseInterface {
         $hdr = $req->getHeaderLine('Authorization');
+        
         if (!preg_match('/^Bearer\s+(.+)$/i', $hdr, $m)) {
             return $this->fail('Missing or malformed token');
         }

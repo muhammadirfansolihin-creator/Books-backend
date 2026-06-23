@@ -27,7 +27,7 @@ final class BookRepository
         $stmt->execute($args); 
         
         // Force FETCH_ASSOC to avoid duplicate numeric array keys in your JSON response
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll();
     } 
      
 
@@ -35,25 +35,24 @@ final class BookRepository
     {
         $stmt = $this->pdo->prepare('SELECT * FROM books WHERE id = :id');
         $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch();
         return $row === false ? null : $row;
     }
 
     public function create(array $b, int $createdBy): int {
+
+        $sql = 'INSERT INTO books (title, author, year, genre, created_by) 
+                VALUES (:title, :author, :year, :genre, :created_by)';
+        $stmt = $this->pdo->prepare($sql);
     
-    $stmt = $this->pdo->prepare(
-        'INSERT INTO books (title, author, year, genre, created_by) 
-         VALUES (:title, :author, :year, :genre, :owner )'
-    );
-    
-    $stmt->execute([
-        ':title'      => trim($b['title']),
-        ':author'     => trim($b['author']),
-        ':year'       => (int)$b['year'],
-        ':genre'      => trim($b['genre'] ?? 'Uncategorised'),
-        ':owner'      => $createdBy
-    ]);
-    return (int)$this->pdo->lastInsertId();
+        $stmt->execute([
+            ':title'      => trim($b['title']),
+            ':author'     => trim($b['author']),
+            ':year'       => (int)$b['year'],
+            ':genre'      => trim($b['genre'] ?? 'Uncategorised'),
+            ':created_by' => $createdBy,
+        ]);
+        return (int)$this->pdo->lastInsertId();
     }
 
     public function update(int $id, array $b): int
