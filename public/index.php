@@ -7,7 +7,6 @@ require __DIR__ . '/../vendor/autoload.php';
 Dotenv::createImmutable(__DIR__ . '/..')->safeLoad();
 
 $app = AppFactory::create();
-$app->add(new TrailingSlashMiddleware(false));
 $app->addRoutingMiddleware();
 $app->add(new App\Middleware\SecurityHeaders());
 $app->add(new App\Middleware\JsonBodyParser());
