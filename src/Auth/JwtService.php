@@ -10,7 +10,7 @@ final class JwtService {
     private string $issuer;
 
     public function __construct() {
-        $this->secret = $_ENV['JWT_SECRET'];
+        $this->secret = $_ENV['JWT_SECRET'] ?? '';
         $this->ttl = (int) ($_ENV['JWT_TTL'] ?? 3600);
         $this->issuer = $_ENV['JWT_ISSUER'] ?? 'books-api';
     }
