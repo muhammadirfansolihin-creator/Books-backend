@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers;
 use App\Auth\JwtService;
+use App\Repositories\AuditLog;
 use App\Repositories\UserRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
