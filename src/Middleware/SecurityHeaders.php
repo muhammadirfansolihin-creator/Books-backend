@@ -8,9 +8,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 final class SecurityHeaders implements MiddlewareInterface {
     public function process(ServerRequestInterface $req, RequestHandlerInterface $h): ResponseInterface {
-        $response = $h->handle($req);
         
-        return $response
+        return $h->handle($req)
             ->withHeader('X-Frame-Options', 'DENY')
             ->withHeader('X-Content-Type-Options', 'nosniff')
             ->withHeader('Referrer-Policy', 'no-referrer-when-downgrade')

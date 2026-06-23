@@ -42,7 +42,11 @@ final class BookController
 
         $auth = (array)$r->getAttribute('auth', []);
         $id = $this->books->create($body, $createdBy);
-        $s = $s->withHeader('Location', '/api/books/' . $id);
+        $s = $s->withHeader('Location', '/api/books/' . $id)
+               ->withHeader('Access-Control-Allow-Origin', 'https://isnzbooks.netlify.app')
+               ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+               ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+               ->withHeader('Access-Control-Expose-Headers', 'Location');
     
         return $this->json($s, ['message' => 'Book created', 'data' => $this->books->find($id)], 201);
            

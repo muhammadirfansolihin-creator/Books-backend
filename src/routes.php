@@ -61,6 +61,8 @@ return function (App $app): void {
         $g->delete('/{id}', [$bookCtrl, 'delete']);
     })->add($auth);
 
-    $app->options('/{routes:.+}', fn(Request $r, Response $s) => $s);
+    $app->options('/{routes:.+}', function(Request $r, Response $s) {
+        return $s
+    });
     
 };
