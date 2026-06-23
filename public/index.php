@@ -12,8 +12,8 @@ $app = AppFactory::create();
 
 $app->addRoutingMiddleware();
 $app->add(new App\Middleware\JsonBodyParser());
-$app->add(new App\Middleware\SecurityHeaders());
 $app->addErrorMiddleware(true, true, true);
+$app->add(new App\Middleware\SecurityHeaders());
 $app->add(new App\Middleware\Cors());
 (require __DIR__ . '/../src/routes.php')($app);
 $app->run();
