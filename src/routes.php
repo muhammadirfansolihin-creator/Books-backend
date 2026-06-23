@@ -7,6 +7,7 @@ use App\Controllers\BookController;
 use App\Database;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RateLimit;
+use App\Repositories\AuditLog;
 use App\Repositories\BookRepository;
 use App\Repositories\UserRepository;
 use Psr\Http\Message\ResponseInterface as Response;
