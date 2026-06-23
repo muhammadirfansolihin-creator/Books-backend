@@ -77,6 +77,8 @@ final class BookController
             return $this->json($s, ['error' => 'Admins only'], 403);
         }
         
+        $userId = (int)($auth['sub'] ?? 0);
+
         $id = (int)($a['id']);
         $book = $this->books->find($id);
         if (!$book) {

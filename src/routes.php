@@ -18,7 +18,7 @@ return function (App $app): void {
     $auth = new AuthMiddleware($jwt);
 
     $bookCtrl = new BookController(new BookRepository($pdo), $pdo);
-    $authCtrl = new AuthController(new UserRepository($pdo), $jwt);
+    $authCtrl = new AuthController(new UserRepository($pdo), $jwt, $pdo);
     $app->options('/{routes:.+}', function($r, $s) { return $s; });
 
     $loginMw = new RateLimit(
