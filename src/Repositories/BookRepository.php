@@ -36,6 +36,7 @@ final class BookRepository
         $stmt = $this->pdo->prepare('SELECT * FROM books WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row === false ? null : $row;
     }
 
     public function create(array $b, int $createdBy): int {
