@@ -22,7 +22,7 @@ final class UserRepository {
     }
 
     public function create(string $n, string $e, string $hash, string $role = 'member'): int {
-        $this->pdo->prepare(
+        $stmt = $this->pdo->prepare(
             'INSERT INTO users (name, email, password_hash, role) VALUES (:n, :e, :h, :r)'
         );
         $stmt->execute([

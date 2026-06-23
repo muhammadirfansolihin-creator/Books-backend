@@ -18,17 +18,22 @@ final class Cors implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        $origin = $request->getHeaderLine('Origin');
+        $targetOrigin = in_array($origin, $this->allowed, true) ? $origin : 'https://isnzbooks.netlify.app';
+
          if ($request->getMethod() === 'OPTIONS') {
             $response = new SlimResponse();
             return $response
-                    ->withHeader('Access-Control-Allow-Origin', 'https://isnzbooks.netlify.app')
+                    ->withHeader('Access-Control-Allow-Origin', $targetOrigin)
                     ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
                     ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
                     ->withStatus(200);
          }
             $response = $handler->handle($request);
             return $response
-            ->withHeader('Access-Control-Allow-Origin', 'https://isnzbooks.netlify.app'); // Pass both $request and $response
+            ->withHeader('Access-Control-Allow-Origin', $targetOrigin)
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization');
     }
 
     private function withCors(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface {
