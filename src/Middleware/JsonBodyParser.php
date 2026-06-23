@@ -8,7 +8,7 @@ use Psr\Http\Server\RequestHandlerInterface as Handler;
 
 final class JsonBodyParser implements MiddlewareInterface
 {
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function process(Request $request, Handler $handler): Response
     {
        $contentType = $request->getHeaderLine('Content-Type');
         if (str_contains($contentType, 'application/json')) {
