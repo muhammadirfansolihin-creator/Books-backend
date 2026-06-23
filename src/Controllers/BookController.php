@@ -4,15 +4,16 @@ namespace App\Controllers;
 use App\Repositories\BookRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use PDO;
 
 final class BookController
 {
-    public function __construct(private BookRepository $books, private PDO $pdo) {}
+    public function __construct(private BookRepository $books) {}
 
     public function index(Request $r, Response $s): Response
     {
-        return $this->json($s, $this->books->all());
+        $p = $r->getQueryParams();
+        $rows = $this->books->all((string)($p['q'] ?? ''), (int)($p['limit'] ?? 0));
+        return $this->json($s, ['count' => count($rows), 'data' => $rows]);
     }
 
     public function show(Request $r, Response $s, array $a): Response
@@ -24,9 +25,7 @@ final class BookController
 
     public function create(Request $r, Response $s): Response
     {
-        $body = (array)($r->getParsedBody());
-        $auth = (array)$r->getAttribute('auth', []);
-        $userId = (int)($auth['sub'] ?? 0);
+        $body = (array)($r->getParsedBody() ?? []);
 
         $errors = (new Validator())
             ->required('title','author','year')
@@ -40,21 +39,22 @@ final class BookController
             return $this->json($s, ['errors' => $errors], 400);
         }
 
-        $id = $this->books->create($body, $userId);
-        $this->logEvent($userId, 'book.create', (string)$id, $r->getServerParams()['REMOTE_ADDR'] ?? '', "Created book: " . $body['title']);
-
-        return $this->json($s, ['message' => 'Book created', 'id' => $id], 201);    
+        $auth = (array)$r->getAttribute('auth', []);
+        $id = $this->books->create($body, $createdBy);
+        $s = $s->withHeader('Location', '/api/books/' . $id);
+    
+        return $this->json($s, ['message' => 'Book created', 'data' => $this->books->find($id)], 201);
+           
         }
 
     public function update(Request $r, Response $s, array $a): Response{
-        $id = (int)($a['id']);
+        $id = (int)($a['id'] ?? 0);
         $book = $this->books->find($id);
         if (!$book) {
             return $this->json($s, ['error' => 'not found'], 404);
         }
 
         $auth = (array)$r->getAttribute('auth', []);
-        $userId = (int)($auth['sub'] ?? 0);
         $isOwner = (int)($book['created_by'] ?? 0) === (int)($auth['sub'] ?? 0);
         $isAdmin = ($auth['role'] ?? 'member') === 'admin';
 
@@ -62,11 +62,14 @@ final class BookController
             return $this->json($s, ['error' => 'Forbidden'], 403);
         }
 
-        $body = (array)($r->getParsedBody());
-        $this->books->update($id, array_merge($book, $body));
-            $this->logEvent($userId, 'book.update', (string)$id, $r->getServerParams()['REMOTE_ADDR'] ?? '', "Updated book ID: " . $id);
+        $body = (array)($r->getParsedBody() ?? []);
+        $errors = $this->validate($body, false);
+        if ($errors) {
+            return $this->json($s, ['errors' => $errors], 400);
+        }
 
-            return $this->json($s, ['message' => 'Book updated']);
+        $this->books->update($id, $body);
+         return $this->json($s, ['message' => 'Book updated', 'data' => $this->books->find($id)]);
     }
 
     public function delete(Request $r, Response $s, array $a): Response
@@ -79,7 +82,7 @@ final class BookController
         
         $userId = (int)($auth['sub'] ?? 0);
 
-        $id = (int)($a['id']);
+        $id = (int)($a['id'] ?? 0);
         $book = $this->books->find($id);
         if (!$book) {
             return $this->json($s, ['error' => 'not found'], 404);
@@ -90,10 +93,6 @@ final class BookController
         return $this->json($s, ['message' => 'Book deleted', 'data' => $book]);
     }
 
-    private function logEvent(?int $actorId, string $action, ?string $target, string $ip, string $detail): void {
-        $stmt = $this->pdo->prepare('INSERT INTO audit_log (actor_id, action, target, ip_address, detail) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$actorId ?: null, $action, $target, $ip, $detail]);
-    }
     
     private function validate(array $b, bool $requireAll): array
     {

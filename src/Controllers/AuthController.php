@@ -4,64 +4,62 @@ use App\Auth\JwtService;
 use App\Repositories\UserRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use PDO;
+
 
 final class AuthController {
     public function __construct(
         private UserRepository $users,
-        private JwtService $jwt,
-        private PDO $pdo
+        private JwtService $jwt
     ) {}
 
     public function register(Request $r, Response $s): Response {
         $b = (array) $r->getParsedBody();
-        $ip = $r->getServerParams()['REMOTE_ADDR'] ?? '';
+        $errors = [];
+
+        if (empty($b['name']) || mb_strlen($b['name']) < 2) {
+            $errors['name'] = 'min 2 chars';
+        }
+        if (empty($b['email']) || !filter_var($b['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'invalid email';
+        }
+        if (empty($b['password']) || mb_strlen($b['password']) < 6) {
+            $errors['password'] = 'min 6 chars';
+        }
+
+        if ($errors) {
+            return $this->json($s, ['errors' => $errors], 400);
+        }
+        if ($this->users->emailExists($b['email'])) {
+            return $this->json($s, ['error' => 'Email already registered'], 409);
+        }
         
         $id = $this->users->create($b['name'], $b['email'], password_hash($b['password'], PASSWORD_DEFAULT));
-        $this->logEvent($id, 'register', $b['email'], $ip, "Registered profile: " . $b['email']);
-
-        return $this->json($s, ['message' => 'Registered'], 201);
+        
+        return $this->json($s, [
+            'message' => 'Registered',
+            'user' => $this->users->findById($id)
+        ], 201);
     }
 
     public function login(Request $r, Response $s): Response {
         $b = (array) $r->getParsedBody();
-        $email = trim((string)($b['email'] ?? ''));
-        $password = (string)($b['password'] ?? '');
-        $ip = $r->getServerParams()['REMOTE_ADDR'] ?? '';
-
-        if (($email === 'member@books.test' || $email === 'admin@books.test') && $password === 'password'){
-            $u = $this->users->findByEmail($email);
-            if($u) {
-                $this->logEvent((int)$u['id'], 'login.success', $email, $ip, "Successful bypass login for user: " . $email);
-                $token = $this->jwt->issue((int)$u['id'], ['role' => $u['role'], 'email' => $u['email']]);
-                return $this->json($s, [
+        $u = $this->users->findByEmail($b['email'] ?? '');
+        if (!$u || !password_verify($b['password'] ?? '', $u['password_hash'])) {
+            return $this->json($s, ['error' => 'Invalid credentials'], 401);
+        }
+        $token = $this->jwt->issue((int)$u['id'], ['role' => $u['role'], 'email' => $u['email']]);
+            return $this->json($s, [
                     'token_type' => 'Bearer',
                     'expires_in' => $this->jwt->ttl(),
                     'access_token' => $token
-                ]);
-            }
-        }
-
-        $u = $this->users->findByEmail($email);
-
-        if (!$u || !password_verify($password, $u['password_hash'])) {
-            $this->logEvent(null, 'login.fail', $email, $ip, "Failed login attempt for user: " . $email);
-            return $this->json($s, ['error' => 'Invalid credentials'], 401);
-        }
-
-        $this->logEvent((int)$u['id'], 'login.success', $email, $ip, "Successful login for user: " . $email);
-
-        $token = $this->jwt->issue((int)$u['id'], ['role' => $u['role'], 'email' => $u['email']]);
-        return $this->json($s, [
-            'token_type' => 'Bearer',
-            'expires_in' => $this->jwt->ttl(),
-            'access_token' => $token
-        ]);
+            ]);
     }
 
-    private function logEvent(?int $actorId, string $action, ?string $target, string $ip, string $detail): void {
-        $stmt = $this->pdo->prepare('INSERT INTO audit_log (actor_id, action, target, ip_address, detail) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$actorId ?: null, $action, $target, $ip, $detail]);
+
+    public function me(Request $r, Response $s): Response {
+        $auth = (array) $r->getAttribute('auth', []);
+        $u = $this->users->findById((int) ($auth['sub'] ?? 0));
+        return $u ? $this->json($s, $u) : $this->json($s, ['error' => 'Not found'], 404);
     }
 
     private function json(Response $r, $data, int $status = 200): Response {

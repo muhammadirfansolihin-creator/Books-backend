@@ -16,16 +16,15 @@ final class UserRepository {
 
     public function findById(int $id): ?array {
         $stmt = $this->pdo->prepare('SELECT id, name, email, role FROM users WHERE id = :id');
-        $stmt->execute([':id' => $id]);
+        $stmt->execute(['id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row === false ? null : $row;
     }
 
     public function create(string $n, string $e, string $hash, string $role = 'member'): int {
-        $stmt = $this->pdo->prepare(
+        $this->pdo->prepare(
             'INSERT INTO users (name, email, password_hash, role) VALUES (:n, :e, :h, :r)'
-        );
-        $stmt->execute([
+        )->execute([
             ':n' => trim($n), 
             ':e' => mb_strtolower(trim($e)), 
             ':h' => $hash, 

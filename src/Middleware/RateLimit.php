@@ -9,17 +9,21 @@ use Slim\Psr7\Response as SlimResponse;
 
 final class RateLimit implements MiddlewareInterface {
 
-    public function __construct(
-        private int $limit,
-        private int $window,
-        private string $bucket ='default'
-    ){}
+    private int $limit;
+    private int $window;
+    private string $bucket;
+
+    public function __construct(int $limit, int $window, string $bucket = 'default') {
+        $this->limit = $limit;
+        $this->window = $window;
+        $this->bucket = $bucket;
+    }
 
     public function process(ServerRequestInterface $req, RequestHandlerInterface $h): ResponseInterface {
         $ip = (string) ($req->getServerParams()['REMOTE_ADDR'] ?? 'unknown');
         
-        $file = sys_get_temp_dir() . '/books-api-rate-' . preg_replace('/\W+/', '_', $this->bucket) . '.json';
-        
+        $cleanBucket = preg_replace('/\W+/', '_', $this->bucket);
+        $file = sys_get_temp_dir() . '/books-api-rate-' . $cleanBucket . '.json';        
         $now = time();
         $data = json_decode((string)@file_get_contents($file), true) ?: [];
         
