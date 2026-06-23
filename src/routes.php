@@ -25,8 +25,6 @@ return function (App $app): void {
         (int)($_ENV['LOGIN_WINDOW_SECONDS'] ?? 60),
         'login'
     );
-
-
     $app->post('/auth/register', [$authCtrl, 'register']);
     $app->post('/auth/login', [$authCtrl, 'login'])->add($loginMw);
     
